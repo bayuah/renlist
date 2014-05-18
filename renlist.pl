@@ -85,7 +85,7 @@ sub date_to_UNIX {
 	# If incomplete.
 	unless(defined $sec){$sec=0;};
 	unless(defined $min){$min=0;};
-	unless(defined $min){$hour=0;};
+	unless(defined $hour){$hour=0;};
 	
 	$year = $year - 1900;
 	$month--;
