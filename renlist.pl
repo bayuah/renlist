@@ -74,7 +74,7 @@ sub read_csv_file{
 	
 }
 
-# date_toUNIX()
+# date_to_UNIX()
 # Change date to unix format.
 # Example: date_to_UNIX "2014-05-08 14:39:21";
 sub date_to_UNIX {
