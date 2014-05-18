@@ -186,7 +186,7 @@ foreach $i (0..$#data){
 					
 					# If access time not defined.
 					unless(defined $atime){
-						# $atime=undef;
+						$atime=undef;
 					}else{
 						
 						# To UNIX Time.
