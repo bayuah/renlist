@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
-$RENLIS_VERSION="0.1";
+$RENLIS_VERSION="0.1.1";
+
+use Time::Local;
 
 =begin comment
 "THE COFFEE-WARE" (Revision 1991)
@@ -72,6 +74,31 @@ sub read_csv_file{
 	
 }
 
+# date_toUNIX()
+# Change date to unix format.
+# Example: date_to_UNIX "2014-05-08 14:39:21";
+sub date_to_UNIX {
+	$error=0;
+	my($date) = @_;
+	my ($year, $month, $day, $hour, $min, $sec) = split /\W+/, $date;
+	
+	# If incomplete.
+	unless(defined $sec){$sec=0;};
+	unless(defined $min){$min=0;};
+	unless(defined $min){$hour=0;};
+	
+	$year = $year - 1900;
+	$month--;
+	
+	my $time = timelocal($sec,$min,$hour,$day,$month,$year) or $error=$!;
+	
+	if($error){
+		return -1;
+	};
+	
+	return $time;
+}
+
 # Fetch @ARGV
 # my @args = grep /^-\w+/, @ARGV;
 # my @args_long = grep /^--\w+/, @ARGV;
@@ -127,6 +154,8 @@ foreach $i (0..$#data){
 	# Get variable.
 	my $old=$data[$i][0];
 	my $new=$data[$i][1];
+	my $mtime=$data[$i][2];
+	my $atime=$data[$i][2];
 	
 	# Check.
 	if(defined $old
@@ -141,11 +170,46 @@ foreach $i (0..$#data){
 			rename $old, $new or $error=$!;
 			wait; # Wait until finish.
 			if($error){
-				printf "renlist: Fail rename '$old' with reason '$error'!\r\n";
+				printf "renlist: Fail to rename '$old' with reason '$error'!\r\n";
 				$err++;
 			}else{
-				printf "'$old' -> '$new'\r\n";
-				$success++;
+				$error=0;
+				# Change timestamps if defined.
+				if(defined $mtime){
+					
+					# To UNIX Time.
+					$mtime=date_to_UNIX $mtime;
+					if($error){
+						printf "renlist: ". $error ."\r\n";
+						exit 3;
+					};
+					
+					# If access time not defined.
+					unless(defined $atime){
+						# $atime=undef;
+					}else{
+						
+						# To UNIX Time.
+						$atime=date_to_UNIX $atime;
+						if($error){
+							printf "renlist: ". $error ."\r\n";
+							exit 4;
+						};
+					};
+					
+					utime $atime, $mtime, $new or $error=$!;
+					wait; # Wait until finish.
+					if($error){
+						printf "renlist: Fail to touch '$new' with reason '$error'!\r\n";
+						$err++;
+					};
+				};
+				
+				if(!$error){
+					# Everything is alright...
+					printf "'$old' -> '$new'\r\n";
+					$success++;
+				};
 			};
 		};
 	};
