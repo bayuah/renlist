@@ -114,7 +114,7 @@ my($filename,$arg_delimiter)=@ARGV;
 
 # If file input is empty, exit with error.
 if(!defined $filename){
-	print "renlist: File input must specific.";
+	print "renlist: File input must specific.\r\n";
 	exit 1;
 }
 
