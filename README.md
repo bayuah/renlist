@@ -38,8 +38,9 @@ Files List Structures
 
 Change logs
 -----------
-* **0.1.1** — (2014/05/18) Added changing the timestamps support.
-* **0.1.0** — (2014/05/08) Initial release.
+* **0.1.2** â€” (2015/06/12) Automatic create base directory for new file if it doesn't exist.
+* **0.1.1** â€” (2014/05/18) Added changing the timestamps support.
+* **0.1.0** â€” (2014/05/08) Initial release.
 
 Questions?
 -----

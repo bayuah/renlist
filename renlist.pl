@@ -1,7 +1,9 @@
 #!/usr/bin/perl -w
-$RENLIS_VERSION="0.1.1";
+$RENLIS_VERSION="0.1.2";
 
 use Time::Local;
+use File::Basename qw( fileparse );
+use File::Path qw( make_path );
 
 =begin comment
 "THE COFFEE-WARE" (Revision 1991)
@@ -167,57 +169,67 @@ foreach $i (0..$#data){
 			$err++;
 		}else{
 			$error=0;
-			rename $old, $new or $error=$!;
-			wait; # Wait until finish.
+			my ( $filename, $directories ) = fileparse $new;
+			
+			# If base directory doesn't exist.
+			if ( !-d $directories ) {
+				make_path $directories or $error=$!;
+			};
+			
 			if($error){
-				printf "renlist: Fail to rename '$old' with reason '$error'!\r\n";
+				printf "renlist: Fail to create base directory for '$new' with reason '$error'!\r\n";
 				$err++;
 			}else{
-				$error=0;
-				# Change timestamps if defined.
-				if(defined $mtime){
-					
-					# To UNIX Time.
-					$mtime=date_to_UNIX $mtime;
-					if($error){
-						printf "renlist: ". $error ."\r\n";
-						exit 3;
-					};
-					
-					# If access time not defined.
-					unless(defined $atime){
-						$atime=undef;
-					}else{
+				rename $old, $new or $error=$!;
+				wait; # Wait until finish.
+				
+				if($error){
+					printf "renlist: Fail to rename '$old' with reason '$error'!\r\n";
+					$err++;
+				}else{
+					$error=0;
+					# Change timestamps if defined.
+					if(defined $mtime){
 						
 						# To UNIX Time.
-						$atime=date_to_UNIX $atime;
+						$mtime=date_to_UNIX $mtime;
 						if($error){
 							printf "renlist: ". $error ."\r\n";
-							exit 4;
+							exit 3;
+						};
+						
+						# If access time not defined.
+						unless(defined $atime){
+							$atime=undef;
+						}else{
+							
+							# To UNIX Time.
+							$atime=date_to_UNIX $atime;
+							if($error){
+								printf "renlist: ". $error ."\r\n";
+								exit 4;
+							};
+						};
+						
+						utime $atime, $mtime, $new or $error=$!;
+						wait; # Wait until finish.
+						if($error){
+							printf "renlist: Fail to touch '$new' with reason '$error'!\r\n";
+							$err++;
 						};
 					};
 					
-					utime $atime, $mtime, $new or $error=$!;
-					wait; # Wait until finish.
-					if($error){
-						printf "renlist: Fail to touch '$new' with reason '$error'!\r\n";
-						$err++;
+					if(!$error){
+						# Everything is alright...
+						printf "'$old' -> '$new'\r\n";
+						$success++;
 					};
 				};
-				
-				if(!$error){
-					# Everything is alright...
-					printf "'$old' -> '$new'\r\n";
-					$success++;
-				};
-			};
+			}
 		};
 	};
 };
 
-printf "\r\nrenlist finished with $success success and $err error (total %i).", $success+$err;
-
+printf "\r\nrenlist finished with $success success and $err error (total %i).\r\n", $success+$err;
 
 # End of file.
-
-
